@@ -1,53 +1,30 @@
-# Kratos Project Template
+# Quick Start
 
-## Install Kratos
+## Start consul
+To start consul with docker:
 ```
-go get -u github.com/go-kratos/kratos/cmd/kratos/v2@latest
+docker run --name consul -d -p 8500:8500 consul
 ```
-## Create a service
+## Start service
 ```
-# Create a template project
-kratos new server
-
-cd server
-# Add a proto template
-kratos proto add api/server/server.proto
-# Generate the proto code
-kratos proto client api/server/server.proto
-# Generate the source code of service by proto file
-kratos proto server api/server/server.proto -t internal/service
-
-go generate ./...
-go build -o ./bin/ ./...
-./bin/server -conf ./configs
-```
-## Generate other auxiliary files by Makefile
-```
-# Download and update dependencies
-make init
-# Generate API swagger json files by proto file
-make swagger
-# Generate API files (include: pb.go, http, grpc, validate, swagger) by proto file
-make api
-# Generate all files
-make all
-```
-## Automated Initialization (wire)
-```
-# install wire
-go get github.com/google/wire/cmd/wire
-
-# generate wire
-cd cmd/server
-wire
+kratos run
 ```
 
-## Docker
-```bash
-# build
-docker build -t <your-docker-image-name> .
+## Run tests
 
-# run
-docker run --rm -p 8000:8000 -p 9000:9000 -v </path/to/your/configs>:/data/conf <your-docker-image-name>
+```
+go test ./cmd/kratos-registry-consul-test/main_test.go -v
 ```
 
+output:
+
+```
+=== RUN   TestRegistry
+=== RUN   TestRegistry/TestConsulGRPCClient
+INFO msg=[resolver] update instances: [{"id":"XXX.local","name":"test-consul-registry-service","version":"v0.0.1","metadata":null,"endpoints":["grpc://192.168.2.233:9000","http://192.168.2.233:8000"]}]
+2021/10/15 00:21:08 [grpc] SayHello: Hello tester
+=== RUN   TestRegistry/TestConsulHTTPClient
+2021/10/15 00:21:08 error: code = 503 reason = NODE_NOT_FOUND message = no instances available metadata = map[]
+FAIL	command-line-arguments	0.161s
+FAIL
+```
