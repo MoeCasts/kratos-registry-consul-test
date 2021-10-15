@@ -10,11 +10,9 @@ import (
 	"github.com/go-kratos/kratos/v2/config"
 	"github.com/go-kratos/kratos/v2/config/file"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
-
-	consul "github.com/go-kratos/consul/registry"
-	"github.com/hashicorp/consul/api"
 )
 
 // go build -ldflags "-X main.Version=x.y.z"
@@ -22,7 +20,7 @@ var (
 	// Name is the name of the compiled software.
 	Name string = "test-consul-registry-service"
 	// Version is the version of the compiled software.
-	Version string = "v0.0.1"
+	Version string = "v0.0.2"
 	// flagconf is the config flag.
 	flagconf string
 
@@ -34,14 +32,6 @@ func init() {
 }
 
 func newApp(logger log.Logger, hs *http.Server, gs *grpc.Server) *kratos.App {
-	consulConfig := api.DefaultConfig()
-	consulConfig.Address = "http://127.0.0.1:8500"
-	consulClient, err := api.NewClient(consulConfig)
-
-	if err != nil {
-		log.NewHelper(logger).Fatal(err)
-	}
-
 	return kratos.New(
 		kratos.ID(id),
 		kratos.Name(Name),
@@ -52,7 +42,6 @@ func newApp(logger log.Logger, hs *http.Server, gs *grpc.Server) *kratos.App {
 			hs,
 			gs,
 		),
-		kratos.Registrar(consul.New(consulClient)),
 	)
 }
 
@@ -64,8 +53,8 @@ func main() {
 		"service.id", id,
 		"service.name", Name,
 		"service.version", Version,
-		"trace_id", log.TraceID(),
-		"span_id", log.SpanID(),
+		"trace_id", tracing.TraceID(),
+		"span_id", tracing.SpanID(),
 	)
 	c := config.New(
 		config.WithSource(
